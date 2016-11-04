@@ -6,9 +6,9 @@ var azure = require('azure-storage');
 //=========================================================
 // Azure Table Setup
 //=========================================================
-var tableSvc = azure.createTableService("azurecredits", process.env.AZURE_STORAGE);
+var tableSvc = azure.createTableService("azurecredits", 'rd2Gd9zF11JraIWYQHE2eyMsu+02wQliFIpvP1qWSy69dmN5iWlXHcGuYla72u0H+LcjZL9/zeHJ6+ZMGRiOlg==');
 
-var name, univ, proj, email, code;
+var name, univ, proj, email, code, num;
 
 //=========================================================
 // Bot Setup
@@ -22,8 +22,8 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Create chat bot
 var connector = new builder.ChatConnector({
-    appId: process.env.APP_ID,
-    appPassword: process.env.APP_PASS
+    appId: 'fc49d996-e2d0-410e-a5f8-39b51343a1b3',
+    appPassword: 'tYrhUVLefEgo6xsEksUMJoD'
 });
 
 var bot = new builder.UniversalBot(connector);
@@ -36,7 +36,7 @@ server.post('/api/messages', connector.listen());
 bot.dialog('/',
 
     function (session) {
-        session.send("Hello! Welcome to the Azure Credit Bot. Would you an Azure Credit today? (Yes/No)")
+        session.send("Hello! Welcome to the Azure Credit Bot. Would you like an Azure Credit today? (Yes/No)")
         session.beginDialog('/name');
     });
 
@@ -67,10 +67,20 @@ bot.dialog('/email', [
 
 bot.dialog('/school', [
     function (session) {
-        builder.Prompts.text(session, "What university did you go to?");
+        builder.Prompts.text(session, "What university do you go to?");
     },
     function (session, results) {
         univ = results.response;
+        session.beginDialog('/number')
+    }]
+);
+
+bot.dialog('/number', [
+    function (session) {
+        builder.Prompts.text(session, "What is your phone number?");
+    },
+    function (session, results) {
+        num = results.response;
         session.beginDialog('/project')
     }]
 );
@@ -91,10 +101,10 @@ bot.dialog('/pass', [
     function (session) {
         RetrievePass();
         setTimeout(function(){
-            session.send("Great! Here is your Azure pass: " + code + ". Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to come by the Microsoft booth and fill out our survey for a chance to win a Microsoft prize. Goodluck")
+            session.send("Great! Here is your Azure pass: " + code + ". Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey at https://aka.ms/calhacks for a chance to win an Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Goodluck")
         }, 3000)
         //      session.send("Great! Here is your Azure pass: " + code + ". Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to come by the Microsoft booth and fill out our survey for a chance to win a Microsoft prize. Goodluck") //+pass
-        //    session.endConversation;
+            session.endConversation;
     }]
 );
 
@@ -140,6 +150,7 @@ function UpdateStudentTable() {
         Timestamp: entGen.DateTime(new Date(Date.now())),
         Name: entGen.String(name),
         University: entGen.String(univ),
+        PhoneNumber: entGen.String(num),
         ProjectDetails: entGen.String(proj)
     };
 
