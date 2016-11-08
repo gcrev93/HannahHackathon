@@ -8,7 +8,7 @@ var validator = require('validator');
 //=========================================================
 // Azure Table Setup
 //=========================================================
-var tableSvc = azure.createTableService("azurecredits", process.env.AZURE_STORAGE);
+var tableSvc = azure.createTableService("azurecredits",'rd2Gd9zF11JraIWYQHE2eyMsu+02wQliFIpvP1qWSy69dmN5iWlXHcGuYla72u0H+LcjZL9/zeHJ6+ZMGRiOlg==')// process.env.AZURE_STORAGE);
 
 var name, univ, proj, email, code, num;
 
@@ -24,8 +24,8 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 
 // Create chat bot
 var connector = new builder.ChatConnector({
-    appId: process.env.APP_ID,
-    appPassword: process.env.APP_PASS
+    appId: 'fc49d996-e2d0-410e-a5f8-39b51343a1b3',
+    appPassword: 'tYrhUVLefEgo6xsEksUMJoD'
 });
 
 var bot = new builder.UniversalBot(connector);

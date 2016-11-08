@@ -10,7 +10,7 @@ var smtpConfig = {
     },
     auth: {
         user: 'gcrev93@hotmail.com',
-        pass: process.env.EMAIL_PASS
+        pass: 'gwashT27'
     }
 };
 // create reusable transporter object using the default SMTP transport 
