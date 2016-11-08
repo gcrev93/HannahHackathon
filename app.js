@@ -1,7 +1,9 @@
 var restify = require('restify');
+var mail = require('./mailex.js')
 var builder = require('botbuilder');
 var env = require('./env.js');
 var azure = require('azure-storage');
+var validator = require('validator');
 
 //=========================================================
 // Azure Table Setup
@@ -36,7 +38,7 @@ server.post('/api/messages', connector.listen());
 bot.dialog('/',
 
     function (session) {
-        session.send("Hello! Welcome to the Azure Credit Bot. Would you like an Azure Credit today? (Yes/No)")
+        session.send("Hello! Welcome to the Azure Credit Bot. Would you like an Azure Credit today? (Please say Yes/No)")
         session.beginDialog('/name');
     });
 
@@ -44,7 +46,7 @@ bot.dialog('/name', new builder.IntentDialog()
     .matches(/^yes/i, [
         function (session) {
 
-            builder.Prompts.text(session, "Ok lets get you set up! What is your name?")
+            builder.Prompts.text(session, "Ok lets get you set up! What is your full name?")
         },
         function (session, results) {
             name = results.response;
@@ -60,8 +62,16 @@ bot.dialog('/email', [
         builder.Prompts.text(session, "What is your email address?");
     },
     function (session, results) {
-        email = results.response;
-        session.beginDialog('/school')
+        if (validator.isEmail(results.response)) {
+            email = results.response;
+            session.beginDialog('/school')
+        }
+        else {
+            session.send("Invalid email")
+            session.beginDialog('/email');
+        }
+
+
     }]
 );
 
@@ -80,14 +90,20 @@ bot.dialog('/number', [
         builder.Prompts.text(session, "What is your phone number?");
     },
     function (session, results) {
+        if(validator.isMobilePhone(results.response, 'en-US')){
         num = results.response;
         session.beginDialog('/project')
+        }
+        else {
+            session.send("Invalid phone number")
+            session.beginDialog('/number');
+        }
     }]
 );
 
 bot.dialog('/project', [
     function (session) {
-        builder.Prompts.text(session, "Thats Awesome!!! Tell me a little bit about your project! ")
+        builder.Prompts.text(session, "That's Awesome!!! Tell me a little bit about your project! ")
     },
     function (session, results) {
         proj = results.response;
@@ -100,11 +116,10 @@ bot.dialog('/project', [
 bot.dialog('/pass', [
     function (session) {
         RetrievePass();
-        setTimeout(function(){
-            session.send("Great! Here is your Azure pass: " + code + ". Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey at https://aka.ms/calhacks for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Goodluck")
+        setTimeout(function () {
+            session.send("Great! Here is your Azure pass: " + code + ". You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey at https://aka.ms/calhacks for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Good luck!")
         }, 3000)
-        //      session.send("Great! Here is your Azure pass: " + code + ". Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to come by the Microsoft booth and fill out our survey for a chance to win a Microsoft prize. Goodluck") //+pass
-            session.endConversation;
+        session.endConversation;
     }]
 );
 
@@ -116,9 +131,9 @@ function RetrievePass() {
     tableSvc.queryEntities('AzureCredits', query, null, function (error, result, response) {
         if (!error) {
             code = result.entries[0].Code._;
-            console.log(code);
             var row = result.entries[0].RowKey._;
-             UpdateCreditTable(row);           
+            UpdateCreditTable(row);
+            mail.SendMail(email, code);
 
         }
         else
@@ -151,7 +166,8 @@ function UpdateStudentTable() {
         Name: entGen.String(name),
         University: entGen.String(univ),
         PhoneNumber: entGen.String(num),
-        ProjectDetails: entGen.String(proj)
+        ProjectDetails: entGen.String(proj),
+        AzureCode: entGen.String(code)
     };
 
     tableSvc.insertEntity('AzureCreditStudents', task, function (error, result, response) {
@@ -162,25 +178,3 @@ function UpdateStudentTable() {
             console.log(error);
     });
 }
-/* Notes
-Add phone number field (only in web app; capture number from twilio)
-Fix typos
-Pictures for web app (change purple circle if possible)
-Provide other resources (in the future)
-Privacy? How can this be
-Different bot for every hackathon
-Input survey link and give instruction 
-FInd out what we are giving away at CalHacks
-Add logos for hackathon !
-
-Mentoring through the bot 
-side 1: flow through to give them doc links from Microsoft Hackers
-    Have available mentors for bots to text
-side 2: Connect them with microsoft employee
-    Communicate between student and employee
-    Availability of employee
-    Location of student
-
-Activation
-- Throughout the day communicate them via phone or email
-- 2 hours before the end of the day "remind you to submit for azure prize and drop pic"*/
