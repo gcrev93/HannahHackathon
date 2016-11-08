@@ -1,5 +1,5 @@
 var nodemailer = require('nodemailer');
-var env = require('./env.js');
+//var env = require('./env.js');
  
 var smtpConfig = {
     host: "smtp-mail.outlook.com",

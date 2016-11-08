@@ -1,7 +1,7 @@
 var restify = require('restify');
 var mail = require('./mailex.js')
 var builder = require('botbuilder');
-var env = require('./env.js');
+//var env = require('./env.js');
 var azure = require('azure-storage');
 var validator = require('validator');
 
