@@ -161,12 +161,17 @@ bot.dialog('/pass', [
     }, next)
   },
   function (session, args, next) {
-    console.log('/pass args: ', args)
+    // TODO define what to do if email is NOT unique
   }]
 )
 
 function getPassOnlyOnUniqueEmail (ifUnique, ifNotUnique, next) {
-  ifNotUnique(next)
+  // TODO query student table to check if email is unique
+  // if unique
+  ifUnique()
+
+  // if not unique
+  // ifNotUnique(next)
 }
 
 function RetrievePass (session, onQueryFinish, next) {
@@ -179,7 +184,7 @@ function RetrievePass (session, onQueryFinish, next) {
       session.userData.code = result.entries[0].Code._
       var row = result.entries[0].RowKey._
       UpdateCreditTable(row)
-      // mail.SendMail(session.userData.email, session.userData.code)
+      mail.SendMail(session.userData.email, session.userData.code)
       onQueryFinish(session)
       UpdateStudentTable(session.userData)
       next()
