@@ -4,6 +4,7 @@ var mail = require('./mailex.js')
 var builder = require('botbuilder')
 var azure = require('azure-storage')
 var validator = require('validator')
+var surveylink = ''
 
 // =========================================================
 // Azure Table Setup
@@ -152,9 +153,10 @@ bot.dialog('/pass', [
   function (session, args, next) {
     // checks student db to test if email is unique
     // args(callIfUnique, callIfNotUnique, next)
+    // TODO get survey for hackillinois and change it in this session.send
     getPassOnlyOnUniqueEmail(function ifUnique () {
       RetrievePass(session, function (session) {
-        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey at https://aka.ms/calhacks for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Good luck!')
+        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey +' surveylink + ' for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Good luck!')
       }, next)
     }, function ifNotUnique (next) {
       next()
@@ -210,17 +212,17 @@ function UpdateCreditTable (row) {
   })
 }
 
-function UpdateStudentTable ({email, name, university, number, project, code}) {
+function UpdateStudentTable (userData) {
   var entGen = azure.TableUtilities.entityGenerator
   var task = {
     PartitionKey: entGen.String('Student'),
-    RowKey: entGen.String(email), // must be unique
+    RowKey: entGen.String(userData.email), // must be unique
     Timestamp: entGen.DateTime(new Date(Date.now())),
-    Name: entGen.String(name),
-    University: entGen.String(university),
-    PhoneNumber: entGen.String(number),
-    ProjectDetails: entGen.String(project),
-    AzureCode: entGen.String(code)
+    Name: entGen.String(userData.name),
+    University: entGen.String(userData.university),
+    PhoneNumber: entGen.String(userData.number),
+    ProjectDetails: entGen.String(userData.project),
+    AzureCode: entGen.String(userData.code)
   }
 
   tableSvc.insertEntity('AzureCreditStudents', task, function (error, result, response) {
