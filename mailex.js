@@ -2,7 +2,7 @@ var nodemailer = require('nodemailer')
 // var env = require('./env.js');
 
 // Set surveyLink for HackIllinois
-var surveyLink = '@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+var surveyLink = 'https://aka.ms/hackillinois';
 
 var smtpConfig = {
   host: 'smtp-mail.outlook.com',
