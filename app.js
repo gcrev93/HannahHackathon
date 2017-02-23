@@ -65,7 +65,7 @@ dialog.matches('botHelp', [
 
 dialog.matches('techHelp', [
   function (session, args, next) {
-        builder.Prompts.choice(session, "Which technology do you need help with? (Choose a number) \n If you need help with a technology on this list, email us at usdxmsfthack@outlook.com so we can find someone to help", techhelp); 
+        builder.Prompts.choice(session, "Which technology do you need help with? (Choose a number)", techhelp); 
     },
   function (session, results) {
     console.log(results.response)
@@ -94,6 +94,9 @@ dialog.matches('techHelp', [
       case 7:
         session.send("You want to know how to build a bot like me? Head to https://docs.botframework.com/en-us/. You can also head to booth where various team members can help you!")
         break;
+        case 8:
+        session.send("If you need help with a technology not on this list, email us at usdxmsfthack@outlook.com so we can find someone to answer your questions.")
+        break;
       default:
         session.send("If I can't help you with any of your needs you can head to our booth and talk with someone or email the team at usdxmsfthack@outlook.com");
 
@@ -105,6 +108,12 @@ dialog.matches('azureCode', [
   function (session, args, next) {
     // Gabby do something here
     session.beginDialog('/getInfo')
+  }
+])
+
+dialog.matches('End', [
+  function (session, args, next) {
+    sendGreet(session)
   }
 ])
 
@@ -159,7 +168,7 @@ bot.dialog('/number', [
     builder.Prompts.text(session, 'What is your phone number?')
   },
   function (session, results) {
-    if (validator.isMobilePhone(results.response, 'en-US')) {
+    if (validator.isMobilePhone(results.response.replace(/[^0-9]/g, ''), 'en-US')) {
       session.userData.number = results.response
       session.beginDialog('/project')
     } else {
@@ -181,7 +190,7 @@ bot.dialog('/project', [
 
 bot.dialog('/pass', [
   function (session, args, next) {
-    // checks student db to test if email is unique
+    // checks student table to test if email is unique
     // args(callIfUnique, callIfNotUnique, next)
     // TODO get survey for hackillinois and change it in this session.send
     getPassOnlyOnUniqueEmail(session, function ifUnique () {
@@ -190,11 +199,12 @@ bot.dialog('/pass', [
       }, next)
     }, function ifNotUnique (next) {
        session.send("Sorry, it seems you have already signed up for an Azure Code. We can only allow one per student. Happy Hacking :)")
-      next()
+     next()
     }, next)
   },
   function (session, args, next) {
     session.send("Can I help you with anything else?")
+    session.endDialog();
   }]
 )
 
@@ -233,7 +243,7 @@ function RetrievePass (session, onQueryFinish, next) {
       mail.SendMail(session.userData.email, session.userData.code)
       onQueryFinish(session)
       UpdateStudentTable(session.userData)
-      next()
+    //  next()
     } else {
       console.log(error)
     }
@@ -278,4 +288,4 @@ function UpdateStudentTable (userData) {
   })
 }
 
-var techhelp = ['Unity', 'Xamarin','Azure','Hardware','IoT','Hololens','Cognitive Services','ChatBots'];
+var techhelp = ['Unity', 'Xamarin','Azure','Hardware','IoT','Hololens','Cognitive Services','ChatBots', 'Other'];

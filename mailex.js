@@ -26,7 +26,7 @@ exports.SendMail = function (email, code) {
     to: email, // list of receivers
     subject: 'Your Azure Code', // Subject line
     text: 'Hello fellow hacker!', // plaintext body
-    html: '<p>Hello fellow hacker!<p><p>Thank you for signing up for an Azure Code! We hope that our services can truly help you with your project. Here is your Azure code: </p><p> <b>' + code + '</b></p><p> To activate: Go to http://www.microsoftazurepass.com/ and paste in this number</p><p> Please come by the booth if you have any questions and dont forget to fill out our survey at ' + surveyLink + 'for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage!</p></br><p><h3>Microsoft Evangelism Team</h3></p><p> </p><p>E: usdxmsfthack@outlook.com</p><p><img src="http://blogs.microsoft.com/wp-content/uploads/2012/08/8867.Microsoft_5F00_Logo_2D00_for_2D00_screen.jpg" style="width: 20%; height: 20%"></p>' // html body
+    html: '<p>Hello fellow hacker!<p><p>Thank you for signing up for an Azure Code! We hope that our services can truly help you with your project. Here is your Azure code: </p><p> <b>' + code + '</b></p><p> To activate: Go to http://www.microsoftazurepass.com/ and paste in this number</p><p> Please come by the booth if you have any questions and dont forget to fill out our survey at ' + surveyLink + ' for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage!</p></br><p><h3>Microsoft Evangelism Team</h3></p><p> </p><p>E: usdxmsfthack@outlook.com</p>' // html body
   }
   transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
