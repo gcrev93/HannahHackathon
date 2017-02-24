@@ -62,12 +62,13 @@ dialog.matches('greeting', [
 
 dialog.matches('teamInfo', [
   function (session, args, next) {
-    // create the card based on selection
-    var card = createCard(session)
+    // // create the card based on selection
+    // var card = createCard(session)
 
-    // attach the card to the reply message
-    var msg = new builder.Message(session).addAttachment(card)
-    session.send(msg)
+    // // attach the card to the reply message
+    // var msg = new builder.Message(session).addAttachment(card)
+    // session.send(msg)
+    session.send('Come stop by the booth and meet our team! We can help you out with your projects and bounce ideas around... or just hang out :)')
   }
 ])
 
