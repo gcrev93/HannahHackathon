@@ -55,7 +55,7 @@ dialog.matches('None', [
 
 dialog.matches('negativeComment', [
   function (session, args, next) {
-    session.send("That's not very nice..")
+    session.send("That's not very nice.. If you come by the booth we can help you out in person!")
   }
 ])
 
