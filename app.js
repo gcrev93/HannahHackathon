@@ -53,6 +53,24 @@ dialog.matches('None', [
   }
 ])
 
+dialog.matches('negativeComment', [
+  function (session, args, next) {
+    session.send("That's not very nice..")
+  }
+])
+
+dialog.matches('profanity', [
+  function (session, args, next) {
+    session.send('Hey! Watch it!')
+  }
+])
+
+dialog.matches('azureCodeError', [
+  function (session, args, next) {
+    session.send("Oh no! We're sorry to hear that. If you come by the booth, we can give you another code and make sure you're all set up.")
+  }
+])
+
 dialog.matches('greeting', [
   function (session, args, next) {
     session.send('Hello there!')
