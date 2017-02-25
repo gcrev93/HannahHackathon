@@ -67,7 +67,7 @@ dialog.matches('profanity', [
 
 dialog.matches('azureCodeError', [
   function (session, args, next) {
-    session.send("Oh no! We're sorry to hear that. If you come by the booth, we can give you another code and make sure you're all set up.")
+    session.send("Oh no! We're sorry to hear that. Please try again - I will hand you a new code.")
   }
 ])
 
@@ -282,7 +282,7 @@ bot.dialog('/pass', [
     // TODO get survey for hackillinois and change it in this session.send
     getPassOnlyOnUniqueEmail(session, function ifUnique () {
       RetrievePass(session, function (session) {
-        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + survey + ' for a chance to win a Xbox one or Jambox wireless speakers. Good luck!')
+        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + survey + ' for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Good luck!')
       }, next)
     }, function ifNotUnique (next) {
       session.send('Sorry, it seems you have already signed up for an Azure Code. We can only allow one per student. Happy Hacking :)')
