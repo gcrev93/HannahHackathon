@@ -146,7 +146,7 @@ function createCard (session) {
 
 dialog.matches('endConvo', [
   function (session, args, next) {
-    session.send('Thanks! Let me know if you need something else.')
+    session.send('Let me know if you need something else!')
   }
 ])
 
