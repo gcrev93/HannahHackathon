@@ -374,3 +374,9 @@ function UpdateStudentTable (userData) {
 }
 
 var techhelp = ['Unity', 'Xamarin', 'Azure', 'Hardware', 'IoT', 'Hololens', 'Cognitive Services', 'ChatBots', 'Other']
+
+
+server.get(/\/?.*/, restify.serveStatic({
+  directory: './public',
+  default: 'index.html'
+}))
