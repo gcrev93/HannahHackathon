@@ -1,21 +1,12 @@
 require('dotenv').config()
 const restify = require('restify')
-const mail = require('./mailex.js')
 const builder = require('botbuilder')
-const azure = require('azure-storage')
 const validator = require('validator')
+const hackData = require('./data/hackSpecificData')
+const table = require('./app/utilities/tableStorage')
+const createCard = require('./app/utilities/createCard')
 
-const hackData = require('./hackSpecificData')
 const techhelp = ['Unity', 'Xamarin', 'Azure', 'Hardware', 'IoT', 'Hololens', 'Cognitive Services', 'ChatBots', 'Other']
-
-// =========================================================
-// Azure Table Setup
-// =========================================================
-const tableSvc = azure.createTableService('azurecredits', process.env.AZURE_STORAGE)
-
-// =========================================================
-// Bot Setup
-// =========================================================
 
 // Setup Restify Server
 const server = restify.createServer()
@@ -24,11 +15,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 })
 
 // Create chat bot
-// const connector = new builder.ChatConnector({
-//   appId: process.env.APP_ID,
-//   appPassword: process.env.APP_PASS
-// })
-const connector = new builder.ChatConnector()
+const connector = new builder.ChatConnector({
+  appId: process.env.APP_ID,
+  appPassword: process.env.APP_PASS
+})
 
 const bot = new builder.UniversalBot(connector)
 server.post('/api/messages', connector.listen())
@@ -42,10 +32,12 @@ bot.dialog('/', dialog)
 // Bots Dialogs
 // =========================================================
 
+// TODO: Refactor this into a string store somewhere instead of a separate function call
 function sendGreet (session) {
   session.send('I can help you get an Azure Code, find resources, or connect you with our Microsoft team! What would you like help with?')
 }
 
+// TODO: Use trigger actions to match intents instead of this pattern
 dialog.matches('None', [
   function (session, args, next) {
     if (args.text === 'no') {
@@ -92,36 +84,6 @@ dialog.matches('teamInfo', [
     session.send('Come stop by the booth and meet our team! We can help you out with your projects and bounce ideas around... or just hang out :)')
   }
 ])
-
-function createCard (session) {
-  var members = []
-  // Populate array of team members
-  hackData.teamMembers.forEach(t => {
-    var focus = ''
-    // Create string to represent each member's focus
-    t.techFocus.forEach((f, i) => {
-      if (i === t.techFocus.length - 1) {
-        focus += `${f} `
-        return
-      }
-      focus += `${f}, `
-    })
-
-    // Create card representing each member and add it to the arry
-    members.push(builder.ReceiptItem.create(session, '', t.name)
-    .subtitle(focus)
-    .quantity(400)
-    .image(builder.CardImage.create(session, t.photoLink)))
-  })
-
-  // Return a receipt card representing the whole team
-  return new builder.ReceiptCard(session)
-      .title(hackData.hackName)
-      .facts([
-        builder.Fact.create(session, '', 'Meet the team!')
-      ])
-      .items(members)
-}
 
 dialog.matches('endConvo', [
   function (session, args, next) {
@@ -178,7 +140,6 @@ dialog.matches('techHelp', [
 
 dialog.matches('azureCode', [
   function (session, args, next) {
-    // Gabby do something here
     session.beginDialog('/getInfo')
   }
 ])
@@ -201,7 +162,6 @@ bot.dialog('/name', [
     session.userData.name = results.response
     session.beginDialog('/email')
   }
-  //
 ])
 
 bot.dialog('/email', [
@@ -259,8 +219,8 @@ bot.dialog('/pass', [
     // checks student table to test if email is unique
     // args(callIfUnique, callIfNotUnique, next)
     // TODO get survey for hackillinois and change it in this session.send
-    getPassOnlyOnUniqueEmail(session, function ifUnique () {
-      RetrievePass(session, function (session) {
+    table.getPassOnlyOnUniqueEmail(session, function ifUnique () {
+      table.RetrievePass(session, function (session) {
         session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + hackData.surveyLink + ' for a chance to win ' + hackData.prize + '. Good luck!')
       }, next)
     }, function ifNotUnique (next) {
@@ -273,84 +233,6 @@ bot.dialog('/pass', [
     session.endDialog()
   }]
 )
-
-function getPassOnlyOnUniqueEmail (session, ifUnique, ifNotUnique, next) {
-  const query = new azure.TableQuery()
-    .top(1)
-    .where('RowKey eq ?', session.userData.email)
-
-  tableSvc.queryEntities('AzureCreditStudents', query, null, function (error, result, response) {
-    if (!error) {
-      if (result.entries.length > 0) {
-          // If the JSON response is greater than 0 then that means the email does exist
-        ifNotUnique(next)
-      } else {
-          // If JSON response is 0 then the email DOES NOT exist
-        ifUnique()
-      }
-    } else {
-      console.log(error)
-    }
-  })
-}
-
-function RetrievePass (session, onQueryFinish, next) {
-  const query = new azure.TableQuery()
-    .top(1)
-    .where('Used eq ?', false)
-
-  tableSvc.queryEntities('AzureCredits', query, null, function (error, result, response) {
-    if (!error) {
-      session.userData.code = result.entries[0].Code._
-      const row = result.entries[0].RowKey._
-      UpdateCreditTable(row)
-      mail.SendMail(session.userData.email, session.userData.code)
-      onQueryFinish(session)
-      UpdateStudentTable(session.userData)
-    //  next()
-    } else {
-      console.log(error)
-    }
-  })
-}
-function UpdateCreditTable (row) {
-  const entGen = azure.TableUtilities.entityGenerator
-  const updatedtask = {
-    PartitionKey: entGen.String('Credit'),
-    RowKey: entGen.String(row),
-    Used: true
-  }
-
-  tableSvc.mergeEntity('AzureCredits', updatedtask, function (error, result, response) {
-    if (!error) {
-      console.log('Credit Updated')
-    } else {
-      console.log(error)
-    }
-  })
-}
-
-function UpdateStudentTable (userData) {
-  const entGen = azure.TableUtilities.entityGenerator
-  const task = {
-    PartitionKey: entGen.String('Student'),
-    RowKey: entGen.String(userData.email), // must be unique
-    Timestamp: entGen.DateTime(new Date(Date.now())),
-    Name: entGen.String(userData.name),
-    University: entGen.String(userData.university),
-    PhoneNumber: entGen.String(userData.number),
-    ProjectDetails: entGen.String(userData.project),
-    AzureCode: entGen.String(userData.code)
-  }
-
-  tableSvc.insertEntity('AzureCreditStudents', task, function (error, result, response) {
-    if (!error) {
-      console.log('Student added')
-    } else {
-      console.log(error)
-    }
-  })
-}
 
 server.get(/\/?.*/, restify.serveStatic({
   directory: './public',
