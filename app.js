@@ -1,38 +1,41 @@
 require('dotenv').config()
-var restify = require('restify')
-var mail = require('./mailex.js')
-var builder = require('botbuilder')
-var azure = require('azure-storage')
-var validator = require('validator')
-var survey = 'https://aka.ms/hackillinois'
+const restify = require('restify')
+const mail = require('./mailex.js')
+const builder = require('botbuilder')
+const azure = require('azure-storage')
+const validator = require('validator')
+
+const hackData = require('./hackSpecificData')
+const techhelp = ['Unity', 'Xamarin', 'Azure', 'Hardware', 'IoT', 'Hololens', 'Cognitive Services', 'ChatBots', 'Other']
 
 // =========================================================
 // Azure Table Setup
 // =========================================================
-var tableSvc = azure.createTableService('azurecredits', process.env.AZURE_STORAGE)
+const tableSvc = azure.createTableService('azurecredits', process.env.AZURE_STORAGE)
 
 // =========================================================
 // Bot Setup
 // =========================================================
 
 // Setup Restify Server
-var server = restify.createServer()
+const server = restify.createServer()
 server.listen(process.env.port || process.env.PORT || 3978, function () {
   console.log('%s listening to %s', server.name, server.url)
 })
 
 // Create chat bot
-var connector = new builder.ChatConnector({
-  appId: process.env.APP_ID,
-  appPassword: process.env.APP_PASS
-})
+// const connector = new builder.ChatConnector({
+//   appId: process.env.APP_ID,
+//   appPassword: process.env.APP_PASS
+// })
+const connector = new builder.ChatConnector()
 
-var bot = new builder.UniversalBot(connector)
+const bot = new builder.UniversalBot(connector)
 server.post('/api/messages', connector.listen())
 
-var model = 'https://api.projectoxford.ai/luis/v1/application?id=' + process.env.LUIS_ID + '&subscription-key=' + process.env.LUIS_KEY + '&verbose=true'
-var recognizer = new builder.LuisRecognizer(model)
-var dialog = new builder.IntentDialog({recognizers: [recognizer]})
+const model = 'https://api.projectoxford.ai/luis/v1/application?id=' + process.env.LUIS_ID + '&subscription-key=' + process.env.LUIS_KEY + '&verbose=true'
+const recognizer = new builder.LuisRecognizer(model)
+const dialog = new builder.IntentDialog({recognizers: [recognizer]})
 bot.dialog('/', dialog)
 
 // =========================================================
@@ -80,68 +83,44 @@ dialog.matches('greeting', [
 
 dialog.matches('teamInfo', [
   function (session, args, next) {
-    // // create the card based on selection
-    // var card = createCard(session)
+    // create the card based on selection
+    const card = createCard(session)
 
-    // // attach the card to the reply message
-    // var msg = new builder.Message(session).addAttachment(card)
-    // session.send(msg)
+    // attach the card to the reply message
+    const msg = new builder.Message(session).addAttachment(card)
+    session.send(msg)
     session.send('Come stop by the booth and meet our team! We can help you out with your projects and bounce ideas around... or just hang out :)')
   }
 ])
 
 function createCard (session) {
+  var members = []
+  // Populate array of team members
+  hackData.teamMembers.forEach(t => {
+    var focus = ''
+    // Create string to represent each member's focus
+    t.techFocus.forEach((f, i) => {
+      if (i === t.techFocus.length - 1) {
+        focus += `${f} `
+        return
+      }
+      focus += `${f}, `
+    })
+
+    // Create card representing each member and add it to the arry
+    members.push(builder.ReceiptItem.create(session, '', t.name)
+    .subtitle(focus)
+    .quantity(400)
+    .image(builder.CardImage.create(session, t.photoLink)))
+  })
+
+  // Return a receipt card representing the whole team
   return new builder.ReceiptCard(session)
-      .title('HackIllinois Microsoft Team')
+      .title(hackData.hackName)
       .facts([
         builder.Fact.create(session, '', 'Meet the team!')
       ])
-      .items([
-        builder.ReceiptItem.create(session, '', 'Brian')
-          .subtitle('IoT, Azure')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAHjAAAAJDA3NjBkMmVkLTg5NWEtNGY2Zi05NGZiLWUxNzBkZGM0NDI3NQ.jpg')),
-        builder.ReceiptItem.create(session, '', 'David G.')
-          .subtitle('Cognitive Services, Xamarin')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAJlAAAAJGZhYmY5ZmFjLTNkODMtNDAzNy1iZmIwLTY4NWE2YjBmYjJiNg.jpg')),
-        builder.ReceiptItem.create(session, '', 'David W.')
-        .subtitle('Swift, Azure')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/4/000/163/067/24292c1.jpg')),
-        builder.ReceiptItem.create(session, '', 'Gavin')
-          .subtitle('HoloLens, Xamarin')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/7/005/092/27e/0ef9945.jpg')),
-        builder.ReceiptItem.create(session, '', 'Hao')
-          .subtitle('Cognitive Services, JavaScript')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/7/005/0ab/34d/355e826.jpg')),
-        builder.ReceiptItem.create(session, '', 'Kevin')
-          .subtitle('Chatbots, Hardware')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAS8AAAAJGQ4NDU0Nzc3LWY2NzUtNDQyOS1iNDBlLWY2NjJhZmE3ZTY2YQ.jpg')),
-        builder.ReceiptItem.create(session, '', 'Julie')
-          .subtitle('Device Checkout and Prizes')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'http://www.meetingsolutionsinc.com/images/staff_julie.jpg')),
-        builder.ReceiptItem.create(session, '', 'Milan')
-          .subtitle('Azure')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/4/005/0aa/117/065db3d.jpg')),
-        builder.ReceiptItem.create(session, '', 'Rae')
-          .subtitle('Hardware, JavaScript')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://www.thatconference.com/cloud/profilephotos/Rachel-Weil-085b9794-2be8-40cb-84f0-0539040d088a-635937481751319387.jpg?w=350&h=350&scale=canvas')),
-        builder.ReceiptItem.create(session, '', 'Sri')
-          .subtitle('Azure')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAwfAAAAJDRhMmY2NzdjLTNkMzQtNGZjMC05MTQ2LTI5Y2YyMDdjZjE3NQ.jpg')),
-        builder.ReceiptItem.create(session, '', 'Tierney')
-          .subtitle('Swag Master')
-          .quantity(400)
-          .image(builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAjSAAAAJDc2ODA4YWI4LTdmZDgtNDRlMy04YmJlLTM4NTdiMDRmZmI4MQ.jpg'))
-      ])
+      .items(members)
 }
 
 dialog.matches('endConvo', [
@@ -282,7 +261,7 @@ bot.dialog('/pass', [
     // TODO get survey for hackillinois and change it in this session.send
     getPassOnlyOnUniqueEmail(session, function ifUnique () {
       RetrievePass(session, function (session) {
-        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + survey + ' for a chance to win a Xbox one, GoPro Hero 3+ White with headstrap and quickclip, or a 10 min massage. Good luck!')
+        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + hackData.surveyLink + ' for a chance to win ' + hackData.prize + '. Good luck!')
       }, next)
     }, function ifNotUnique (next) {
       session.send('Sorry, it seems you have already signed up for an Azure Code. We can only allow one per student. Happy Hacking :)')
@@ -296,7 +275,7 @@ bot.dialog('/pass', [
 )
 
 function getPassOnlyOnUniqueEmail (session, ifUnique, ifNotUnique, next) {
-  var query = new azure.TableQuery()
+  const query = new azure.TableQuery()
     .top(1)
     .where('RowKey eq ?', session.userData.email)
 
@@ -316,14 +295,14 @@ function getPassOnlyOnUniqueEmail (session, ifUnique, ifNotUnique, next) {
 }
 
 function RetrievePass (session, onQueryFinish, next) {
-  var query = new azure.TableQuery()
+  const query = new azure.TableQuery()
     .top(1)
     .where('Used eq ?', false)
 
   tableSvc.queryEntities('AzureCredits', query, null, function (error, result, response) {
     if (!error) {
       session.userData.code = result.entries[0].Code._
-      var row = result.entries[0].RowKey._
+      const row = result.entries[0].RowKey._
       UpdateCreditTable(row)
       mail.SendMail(session.userData.email, session.userData.code)
       onQueryFinish(session)
@@ -335,8 +314,8 @@ function RetrievePass (session, onQueryFinish, next) {
   })
 }
 function UpdateCreditTable (row) {
-  var entGen = azure.TableUtilities.entityGenerator
-  var updatedtask = {
+  const entGen = azure.TableUtilities.entityGenerator
+  const updatedtask = {
     PartitionKey: entGen.String('Credit'),
     RowKey: entGen.String(row),
     Used: true
@@ -352,8 +331,8 @@ function UpdateCreditTable (row) {
 }
 
 function UpdateStudentTable (userData) {
-  var entGen = azure.TableUtilities.entityGenerator
-  var task = {
+  const entGen = azure.TableUtilities.entityGenerator
+  const task = {
     PartitionKey: entGen.String('Student'),
     RowKey: entGen.String(userData.email), // must be unique
     Timestamp: entGen.DateTime(new Date(Date.now())),
@@ -372,9 +351,6 @@ function UpdateStudentTable (userData) {
     }
   })
 }
-
-var techhelp = ['Unity', 'Xamarin', 'Azure', 'Hardware', 'IoT', 'Hololens', 'Cognitive Services', 'ChatBots', 'Other']
-
 
 server.get(/\/?.*/, restify.serveStatic({
   directory: './public',
