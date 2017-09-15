@@ -10,7 +10,7 @@ lib.dialog('/', [
       // attach the card to the reply message
     const msg = new builder.Message(session).addAttachment(card)
     session.send(msg)
-    session.send('Come stop by the booth and meet our team! We can help you out with your projects and bounce ideas around... or just hang out :)')
+    session.endDialog('Come stop by the booth and meet our team! We can help you out with your projects and bounce ideas around... or just hang out :)')
   }
 ]).triggerAction({
   matches: 'teamInfo'

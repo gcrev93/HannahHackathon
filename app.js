@@ -29,6 +29,7 @@ bot.library(require('./app/dialogs/profanity').createLibrary())
 bot.library(require('./app/dialogs/azureCodeError').createLibrary())
 bot.library(require('./app/dialogs/endConvo').createLibrary())
 bot.library(require('./app/dialogs/botHelp').createLibrary())
+bot.library(require('./app/dialogs/none').createLibrary())
 
 server.get(/\/?.*/, restify.serveStatic({
   directory: './public',

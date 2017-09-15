@@ -47,17 +47,17 @@ Follow [this guide](https://docs.microsoft.com/en-us/azure/storage/common/storag
 Create a table to store all of the azure codes for the event. 
 - Name: `AzureCredits`
 - Required Columns
-    - `Partition Key`: The values here will always be `Credits`
-    - `Row Key`: The azure code, it is primary key for the table
-    - `Used`: Boolean value to represent whether the credit has been given out or not
+    - `Partition Key` The values here will always be `Credits`
+    - `Row Key` The azure code, it is primary key for the table
+    - `Used` Boolean value to represent whether the credit has been given out or not
     - `Timestamp`
 
 Create a second table to store the student information.
 - Name: `AzureCreditStudents`
 - Required Columns
-    - `Partion Key`: The values here will always be `Student`
-    - `Row Key`: The student's email, it is the primary key for the table
-    - `AzureCode`: The code that was assigned to the student
+    - `Partion Key` The values here will always be `Student`
+    - `Row Key` The student's email, it is the primary key for the table
+    - `AzureCode` The code that was assigned to the student
     - `Name`
     - `University`
     - `PhoneNumber`

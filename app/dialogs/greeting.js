@@ -4,7 +4,7 @@ const lib = new builder.Library('greeting')
 lib.dialog('/', [
   function (session, args, next) {
     session.send('Hello there!')
-    session.send('I can help you get an Azure Code, find resources, or connect you with our Microsoft team! What would you like help with?')
+    session.endDialog('I can help you get an Azure Code, find resources, or connect you with our Microsoft team! What would you like help with?')
   }
 ]).triggerAction({
   matches: 'greeting',
