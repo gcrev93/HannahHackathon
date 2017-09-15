@@ -1,10 +1,12 @@
+require('dotenv').load()
 const azure = require('azure-storage')
 const mail = require('./mailex.js')
 
 // =========================================================
 // Azure Table Setup
 // =========================================================
-const tableSvc = azure.createTableService('azurecredits', process.env.AZURE_STORAGE)
+// TODO: Include new env var in README
+const tableSvc = azure.createTableService(process.env.AZURE_STORE_CONNSTR, process.env.AZURE_STORAGE_KEY)
 
 function updateCreditTable (row) {
   const entGen = azure.TableUtilities.entityGenerator
@@ -30,8 +32,8 @@ function updateStudentTable (userData) {
     RowKey: entGen.String(userData.email), // must be unique
     Timestamp: entGen.DateTime(new Date(Date.now())),
     Name: entGen.String(userData.name),
-    University: entGen.String(userData.university),
-    PhoneNumber: entGen.String(userData.number),
+    University: entGen.String(userData.school),
+    PhoneNumber: entGen.String(userData.phone),
     ProjectDetails: entGen.String(userData.project),
     AzureCode: entGen.String(userData.code)
   }
@@ -45,7 +47,6 @@ function updateStudentTable (userData) {
   })
 }
 
-// TODO: Set up env and make sure this flow works as expected
 module.exports = {
   tableSvc: tableSvc,
 
@@ -81,8 +82,14 @@ module.exports = {
         return
       }
 
-      session.userData.code = result.entries[0].Code._
+      // Ensure there are still passes to give out
+      if (result.entries.length === 0) {
+        session.endDialog('Whoops! Looks like we ran out of Azure passes, head to the booth and we\'ll help you out!')
+        return
+      }
+      // TODO: Investigate why this isn't .Code._
       const row = result.entries[0].RowKey._
+      session.userData.code = row
       updateCreditTable(row)
       mail.SendMail(session.userData.email, session.userData.code)
       onQueryFinish(session)

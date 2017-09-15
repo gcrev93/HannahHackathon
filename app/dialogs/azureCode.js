@@ -1,6 +1,7 @@
 const builder = require('botbuilder')
 const validator = require('validator')
 const table = require('../utilities/tableStorage')
+const hackData = require('../../data/hackSpecificData')
 
 const lib = new builder.Library('azureCode')
 lib.dialog('/', [
@@ -84,7 +85,7 @@ lib.dialog('/school', [
 
 lib.dialog('/project', [
   function (session) {
-    builder.Prompts.text(session, "That's Awesome! Tell me a little bit about your project! What technologies are you using?")
+    builder.Prompts.text(session, "That's Awesome! Tell me a little bit about your project!")
   },
   function (session, results) {
     session.endDialogWithResult(results)
@@ -97,7 +98,10 @@ lib.dialog('/pass', [
     // args(callIfUnique, callIfNotUnique, next)
     table.getPassOnlyOnUniqueEmail(session, function ifUnique () {
       table.retrievePass(session, function (session) {
-        session.send('Great! Here is your Azure pass: ' + session.userData.code + '. You will also get a confirmation email with your Azure pass. To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ' + hackData.surveyLink + ' for a chance to win ' + hackData.prize + '. Good luck!')
+        session.endDialog(`Great! Here is your Azure pass: ${session.userData.code}. 
+          You will also get a confirmation email with your Azure pass. 
+          To activate: Go to http://www.microsoftazurepass.com/ and paste in this number and dont forget to fill out our survey ${hackData.surveyLink} for a chance to win ${hackData.prize}. 
+          Good luck!`)
       }, next)
     }, function ifNotUnique (next) {
       session.send('Sorry, it seems you have already signed up for an Azure Code. We can only allow one per student. Happy Hacking :)')
