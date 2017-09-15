@@ -1,3 +1,4 @@
+require('dotenv').load()
 var nodemailer = require('nodemailer')
 var hackData = require('../../data/hackSpecificData')
 
@@ -17,6 +18,7 @@ var smtpConfig = {
 var transporter = nodemailer.createTransport(smtpConfig)
 
 // send mail with defined transport object
+// TODO: Fix email sending
 exports.SendMail = function (email, code) {
   var mailOptions = {
     from: `"Microsoft Evangelism Team " <${process.env.EMAIL_USERNAME}>`, // sender address

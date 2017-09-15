@@ -5,14 +5,14 @@ const mail = require('./mailex.js')
 // =========================================================
 // Azure Table Setup
 // =========================================================
-// TODO: Include new env var in README
-const tableSvc = azure.createTableService(process.env.AZURE_STORE_CONNSTR, process.env.AZURE_STORAGE_KEY)
+const tableSvc = azure.createTableService(process.env.AZURE_STORE_CONNSTR)
 
 function updateCreditTable (row) {
   const entGen = azure.TableUtilities.entityGenerator
   const updatedtask = {
     PartitionKey: entGen.String('Credit'),
     RowKey: entGen.String(row),
+    Timestamp: entGen.DateTime(new Date(Date.now())),
     Used: true
   }
 
