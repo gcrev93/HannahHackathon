@@ -322,7 +322,7 @@ function RetrievePass (session, onQueryFinish, next) {
 
   tableSvc.queryEntities('AzureCredits', query, null, function (error, result, response) {
     if (!error) {
-      session.userData.code = result.entries[0].Code._
+      session.userData.code = result.entries[0].RowKey._
       var row = result.entries[0].RowKey._
       UpdateCreditTable(row)
       mail.SendMail(session.userData.email, session.userData.code)
