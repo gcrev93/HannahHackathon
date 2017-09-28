@@ -31,7 +31,7 @@ bot.library(require('./app/dialogs/endConvo').createLibrary())
 bot.library(require('./app/dialogs/botHelp').createLibrary())
 bot.library(require('./app/dialogs/none').createLibrary())
 
-server.get(/\/?.*/, restify.serveStatic({
+server.get(/\/?.*/, restify.plugins.serveStatic({
   directory: './public',
   default: 'index.html'
 }))
