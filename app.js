@@ -17,7 +17,7 @@ const connector = new builder.ChatConnector({
 const bot = new builder.UniversalBot(connector)
 server.post('/api/messages', connector.listen())
 
-const model = 'https://api.projectoxford.ai/luis/v1/application?id=' + process.env.LUIS_ID + '&subscription-key=' + process.env.LUIS_KEY + '&verbose=true'
+const model = `https://api.projectoxford.ai/luis/v1/application?id=${process.env.LUIS_ID}&subscription-key=${process.env.LUIS_KEY}&verbose=true`
 bot.recognizer(new builder.LuisRecognizer(model))
 
 bot.library(require('./app/dialogs/greeting').createLibrary())
@@ -32,6 +32,6 @@ bot.library(require('./app/dialogs/botHelp').createLibrary())
 bot.library(require('./app/dialogs/none').createLibrary())
 
 server.get(/\/?.*/, restify.plugins.serveStatic({
-  directory: './public',
+  directory: __dirname,
   default: 'index.html'
 }))
